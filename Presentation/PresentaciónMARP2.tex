@@ -1,0 +1,366 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[normalem]{ulem}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, matrix} % <-- added library
+\usepackage{graphicx}
+\graphicspath{{C:/Users/marco/Documents/DocumentosLatex/}}
+
+
+\usetheme{madrid}
+\usecolortheme{default}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{white},   
+	commentstyle=\color{green},
+	keywordstyle=\color{blue},
+	numberstyle=\tiny\color{gray},
+	stringstyle=\color{cyan},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers= none,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style = mystyle}
+
+\setbeamertemplate{navigation symbols}{}
+%------------------------------------------------------------
+%This block of code defines the information to appear in the
+%Title page
+\title[Algoritmos pseudo-polinómicos] %optional
+{Algoritmos pseudo-polinómicos}
+
+\author[Marcos Herrero] % (optional)
+{Marcos Herrero Agustín}
+
+
+\date[] % (optional)
+{}
+
+
+
+%End of title page configuration block
+%------------------------------------------------------------
+
+
+
+%------------------------------------------------------------
+%The next block of commands puts the table of contents at the 
+%beginning of each section and highlights the current section:
+
+\AtBeginSection[]
+{
+	\begin{frame}
+\Huge \secname
+\end{frame}
+}
+%------------------------------------------------------------
+
+
+\begin{document}
+
+%The next statement creates the title page.
+\frame{\titlepage}
+
+
+%--------------------------------------------
+\begin{frame}[fragile]
+	\frametitle{¿Es polinómico?}
+	\begin{columns}
+		\begin{column}{0.65\textwidth}
+		  \begin{lstlisting}[language = C++, basicstyle=\ttfamily\scriptsize]
+			vector<int> factorizar(int n) {
+			  vector<int> factores;
+			  int i = 2;
+			
+			  while (i <= sqrt(n)) {
+			    while (n % i == 0) {
+			      factores.push_back(i);
+			      n /= i;
+			    }
+			    ++i;
+			  }
+			
+			  if (n != 1)factores.push_back(n);
+			  return factores;
+			}
+			\end{lstlisting}
+			
+			Coste $O(\sqrt{n})$
+		\end{column}
+	    \begin{column}{0.35\textwidth}
+	    	No es un algoritmo polinómico, porque el tamaño de la entrada no es $n$ sino $\log n$.\\ Es lo que llamaremos un algoritmo pseudo-polinómico
+	    \end{column}
+	\end{columns}
+
+\end{frame}
+
+%---------------------------------------------------------
+%This block of code is for the table of contents after
+%the title page
+\begin{frame}
+	\frametitle{Contenidos}
+	\tableofcontents
+\end{frame}
+%-------------
+\section{El tamaño de la entrada}
+
+ \begin{frame}
+ 	\frametitle{El tamaño de la entrada}
+ 	\begin{itemize}
+ 		\item Toda instancia de un problema abstracto ha de representarse como una palabra en términos de un cierto alfabeto para poder ser procesada por una máquina de Turing. Llamamos \alert{sistema de representación} a este alfabeto y \alert{tamaño de la instancia} al número de símbolos del sistema utilizados para representarla
+
+ 		\item A efectos prácticos, no importa el tamaño exacto. Pero es relevante si la diferencia en el número de símbolos empleados en dos sistemas de representación crece exponencialmente con el tamaño de la instancia, ya que esto desplaza la frontera entre lo que se considera tratable(polinómico) y lo que no. Por ejemplo, para representar un número natural $n$ el número de símbolos utilizado es:
+ 		\begin{itemize}
+ 			\item En base 2: $[\log_2 n] + 1 \sim \log n$
+ 			\item En base 10: $[\log_{10} n] + 1 \sim \log n$
+ 			 \item En "base 1": $n \nsim \log n$
+ 		% Entonces el algoritmo anterior sí que se consideraría polinómico  si admitiéramos el unario como sistema de repsentación válido, y lo consideraríamos tratable
+ 		\end{itemize}
+ 	\end{itemize}
+ \end{frame}
+
+\begin{frame}
+	Para evitar estas diferencias al medir el tamaño de un problema, nos restringiremos a aquellos sistemas razonables y concisos, en el sentido de ser lo bastante similares al sistema binario.
+	\begin{itemize}
+		\item Decimos que un sistema de representación es \alert{razonable} si toda instancia codificada en él puede ser transformada a sistema binario en un tiempo polinómico en el número de símbolos. 
+		\item Decimos que un sistema de representación es \alert{conciso} si el número de símbolos utilizados para representar una instancia está en el orden del utilizado por un computador. Por tanto, el sistema unario no se considera conciso
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Independencia de la representación}
+	Nos gustaría hacer las nociones que vamos a tratar independientes del sistema de representación. Esto se consigue asumiendo que todo problema abstracto consta de dos funciones Length y Max definidas como siguen.
+	\begin{itemize}
+		\item \alert{Length} asigna a cada instancia del problema el número de símbolos necesarios para representarla en alguna codificación razonable y concisa. Se corresponde con lo que hemos llamado tamaño del problema
+		\item \alert{Max} asigna a cada instancia el mayor (en valor absoluto) parámetro entero de esta (números no enteros se consideran composición de varios valores enteros). La llamaremos magnitud del problema. Si las instancias de un problema no tienen ningún parámetro numérico, establecemos por convenio que $\text{Max}\equiv1$ para este problema
+	\end{itemize}
+    
+    Nuevamente, no importan los valores exactos, sino el orden de los mismos.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Ejemplos}
+	\begin{itemize}
+		\item SAT-FNC: recibe conjunto $C=\{c_1,...,c_m\}$ de cláusulas\\
+		$\text{Length}(I)= \sum_{i=1}^m |c_i|$, $\text{Max}(I)= 1$
+		\item Cliqué: recibe un grafo  $G=(V,E)$ y un entero $k\leq |V|$
+		$\text{Length}(I)= |V| + |E|$, $\text{Max}(I)= k$
+		\item Partición: recibe un conjunto de enteros $A= \{a_1,...,a_n\}$\\
+		$\text{Length}(I)= |A|+ \sum_{i=1}^n\log a_i $, $\text{Max}(I)= \max\limits_{1\leq i\leq n} a_i$
+		\item Mochila: recibe un conjunto $U$ de pares peso-valor $(p(u),s(u))$ y dos enteros $W$(capacidad) y $k$(valor a alcanzar)\\
+		$\text{Length}(I)= |U| + \log(W) + \log(k) $, $\text{Max}(I)= W + k$
+		\item Viajante: recibe un conjunto $C=\{c_1,...,c_m\}$ de ciudades, las distancias entre cada par de ellas $d(c_i,c_j), i,j\in{1,...,m}$ y un entero $k$ (máxima distancia)\\
+		$\text{Length}(I)= |C|+ \sum_{i<j}\log d(c_i,c_j,) $, $\text{Max}(I)= \max\limits_{i<j}d(c_i,c_j) + k $
+	\end{itemize}
+\end{frame}
+
+\section{Algoritmos pseudopolinómicos}
+
+\begin{frame}
+	\frametitle{Algoritmos pseudo-polinómicos}
+	\begin{itemize}
+		\item Recuérdese que un algoritmo es \alert{polinómico} si tiene coste polinómico en el tamaño del problema, es decir, coste acotado por un polinomio en la variable Length($I$)
+		\item De forma análoga, se dice que un algoritmo es \alert{pseudo-polinómico} si tiene coste acotado por un polinomio en las variables Length($I$) y Max($I$). Evidentemente, todo algoritmo polinómico es también pseudo-polinómico.
+	\end{itemize}
+
+   \begin{block}{Observación}
+   	Un problema que solo presente algoritmos pseudo-polinómicos no polinómicos entra en la categoría teórica de intratable. Sin embargo, los algoritmos pseudo-polinómicos solo presentan comportamiento exponencial al tratar instancias que contienen números muy grandes, así que en la práctica un algoritmo pseudo-polinómico puede ser tan útil como uno polinómico
+   \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Ejemplos de algoritmos pseudo-polinómicos: Mochila}
+	\begin{lstlisting}[language = C++, basicstyle=\ttfamily\scriptsize]
+	int Mochila(vector<int> & pesos, vector<int> & valores, int W) {
+	   int n = pesos.size();
+	
+	   vector<int> maxValor(W+1, 0);
+	
+	   for (int i = 1; i <= n; ++i) {
+         for (int j = W; j >= pesos[i-1]; --j) {
+	        maxValor[j] = max(valores[i - 1] + 
+	            maxValor[j - pesos[i - 1]], maxValor[j]);
+	     }
+	   }
+	
+	return maxValor[n][W];
+	}
+	\end{lstlisting}
+	
+	Coste O($nW$)
+\end{frame}
+
+\begin{frame}
+	\frametitle{Problemas numéricos}
+	Decimos que un problema es \alert{numérico} si no existe un polinomio $p$ tal que para toda instancia $I$ del problema se verifique $\text{Max}(I)\leq p(\text{Length}(I))$
+	%ninguna función polinómica del tamaño del problema acota la magnitud del problema
+	\begin{block}{Observación}
+		No todo problema con algún parámetro numérico se considera numérico según esta definición. Por ejemplo, el problema de decisión del Cliqué no es numérico, pues su magnitud $k$ está acotado por su tamaño $|V|$
+	\end{block}
+
+    En los problemas no numéricos, la magnitud está acotada por una función polinómica del tamaño del problema, así que un algoritmo que lo resuelve es pseudopolinómico si y solo si es polinómico.
+\end{frame}
+
+\section{Clases de complejidad}
+\begin{frame}
+	\frametitle{NP-completos débiles y fuertes}
+	\begin{itemize}
+		\item Un problema NP-completo se dice \alert{NP-completo débil} si existe un algoritmo pseudo-polinómico que lo resuelve. Por ejemplo: Mochila, Partición, Suma de subconjuntos,...
+		\item Un problema NP-completo se dice \alert{NP-completo fuerte} si existe un polinomio $p$ tal que restringiendo el problema a aquellas instancias $I$ con Max($I$) acotada por $p(\text{Length(I)})$ sigue siendo NP-completo (es decir, seguiría siendo NP-completo aunque los datos se representaran en unario)
+		\end{itemize}
+		
+       	Un algoritmo pseudo-polinómico para un problema constituye un algoritmo polinómico para las instancias $I$ de ese problema tales que $\text{Max}(I)\leq p(\text{Length(I)})$. Por tanto, si P$\neq$NP, las clases anteriores de problemas son disjuntas. No obstante, es una pregunta abierta si existen problemas NP-completos ni fuertes ni débiles.
+       	
+       	% Es decir, si un problema fuera NP Completo fuerte y débil a la vez tendríamos un algoritmo polinómico para sus instancias de este tipo, que son NP completas,  así que sería P = NP.  Es una pregunta abierta si existen problemas NP Completos$ 
+	\end{frame}
+
+\begin{frame}
+	\frametitle{Nuevas clases de complejidad}
+	\includegraphics[scale= 0.5]{DiagramaPseudo1}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Nuevas clases de complejidad: problemas no numéricos}
+	\includegraphics[scale= 0.5]{DiagramaPseudo2}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Ejemplos de problemas NP-Completos fuertes}
+	\begin{itemize}
+		\item Todos los NP-Completos no numéricos: SAT, Cliqué, ciclo hamiltoniano, ...
+		\item Los NP-Completos numéricos cuya magnitud se puede acotar por una constante y siguen siendo NP-Completos. Por ejemplo:
+		\begin{itemize}
+			\item El problema del viajante
+			\item El problema del corte máximo
+		\end{itemize}
+	    \item Otros ejemplos: 
+	    \begin{itemize}
+	    	\item 3-Partición
+	    	\item Bin Packing
+	    \end{itemize} 
+	\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+	\begin{block}{El problema del viajante}
+		Instancia: conjunto $C = \{c_1,...,c_m\}$ de ciudades, distancias $d(c_i, c_j)$ entre cada par de ellas y un entero $k$\\
+		Pregunta: ¿Existe algún circuito que pase por cada ciudad exactamente una vez y cuya longitud sea menor o igual que $k$?\\
+	\end{block}
+     restringiendo las distancias a valores $0$ y $1$ y $k$ a ser $0$ el problema se puede interpretar como: 
+     \begin{block}{¿?} 
+     	Instancia: conjunto $ C = \{c_1,...,c_m\}$ de ciudades y conjunto de $A$ de aristas entre ellas\\
+     	Pregunta: ¿Existe algún circuito formado por aristas de $A$ que pase por cada ciudad exactamente una vez?
+     \end{block}
+     que es el \alert{problema del ciclo hamiltoniano}
+\end{frame}
+
+\begin{frame}
+	\frametitle{¿Cómo probar que un problema es NP-Completo fuerte?}
+	\begin{itemize}
+		\item Encontrar un polinomio $p$ tal que restringiendo el problema a instancias con magnitud $Max(I)$ acotada por $p(Length(I))$ sigue siendo NP-Completo
+		\item Construir una reducción pseudo-polinómica de un problema que ya sabemos que es NP-completo fuerte.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Reducción pseudo-polinómica}
+	 Una transformación $f$ de instancias de un problema $A$ en instancias de un problema $B$ es una \alert{reducción pseudo-polinómica} de $A$ a $B$ si verifica:
+	 \begin{itemize}
+	 	\item[a)] Para toda instancia $I$ de $A$, la respuesta de $A$ para $I$ coincide con la de $B$ para $f(I)$
+	 	\item[b)] $f$ es polinómica en las variables Length$_A$($I$) y Max$_A$($I$).
+	 	\item[c)] Existe un polinomio $p$ tal que para toda instancia $I$ de $A$: $p(\text{Length}_B[f(I)])\geq\text{Length}_A(I)$
+	 	\item[d)] Existe un polinomio $q$ tal que para toda instancia $I$ de $A$:
+	 	$\text{Max}_B[f(I)]\leq q(\text{Length}_A(I), \text{Max}_A(I))$
+	 \end{itemize}
+     Consecuencias:
+     \begin{itemize}
+     	\item Si $B$ está en PseudoP  y $A\leq_{pseudop}B$ entonces $A$ está en PseudoP
+     	\item Si $A$ es NP-completo fuerte y $A\leq_{pseudop}B$, entonces $B$ es NP-completo fuerte
+     \end{itemize}
+ 
+\end{frame}
+
+\section{Relación con los algoritmos de aproximación}
+
+\begin{frame}
+	\frametitle{Para problemas NP-difíciles}
+	Generalizamos la noción de NP-completitud fuerte a \alert{problemas de optimización}:
+	\begin{itemize}
+	\item Un problema NP-difícil se dice \alert{NP-difícil débil} si existe un algoritmo pseudo-polinómico que lo resuelve. Por ejemplo: Mochila, Partición, Suma de subconjuntos,...
+	\item Un problema NP-difícil se dice \alert{NP-difícil fuerte} si existe un polinomio $p$ tal que restringiendo el problema a aquellas instancias con magnitud Max($I$) acotada por $p(\text{Length(I)})$ sigue siendo NP-difícil  (es decir, seguiría siendo NP-difícil aunque los datos se representaran en unario)
+    \end{itemize}
+    Nos gustaría ser capaces de encontrar algoritmos de aproximación precisos y eficientes para estos problemas
+\end{frame}
+
+\begin{frame}
+	\frametitle{Esquemas de aproximación}
+	\begin{itemize}
+		\item Un \alert{esquema de aproximación} (AS) de un problema de optimización es un algoritmo que toma como entrada una instancia del problema y $\varepsilon\in\mathbb{R}^+$  y encuentra una solución aproximada del problema con error relativo menor o igual que $\varepsilon$. Es decir, si la solución óptima del problema para una instancia $I$ es $I^*$, el algoritmo encuentra un valor $A(I)$ tal que $|A(I)-I^*|<\epsilon|I^*|$
+		\item Nos interesan aquellos que tienen coste polinómico:
+		\begin{itemize}
+			\item Los esquemas de aproximación en tiempo polinómico(PTAS) son polinómicos en Length($I$)
+			\item Los esquemas de aproximación en tiempo totalmente polinómico (FPTAS) son polinómicos en Length($I$) y $1/\varepsilon$
+		\end{itemize}
+		\item Existe una relación estrecha entre la existencia de esquemas de aproximación polinómicos y la de algoritmos pseudopolinómicos
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Pseudopolinómico $\implies$ PTAS }
+	\begin{itemize}
+		\item Existen técnicas que permiten transformar algoritmos pseudopolinómicos exactos para problemas de optimización en PTAS para el mismo problema.
+		\item Para ciertos problemas estas técnicas funcionan muy bien: por ejemplo, por estos medios se ha obtenido un FPTAS del problema de la Mochila 
+		\item Inconvenientes:
+		\begin{itemize}
+		\item No sirven con todos los algoritmos pseudopolinómicos
+		\item  En muchos casos se obtienen PTAS exponenciales en $1/\varepsilon$ , que resultan menos útiles. En particular, el problema de la mochila con dos restricciones(peso + volumen) presenta un algoritmo pseudopolinómico y un PTAS derivado de él, pero se puede probar que no admite ningún FPTAS 
+		\item Los PTAS obtenidos, aunque sean eficientes en tiempo, suelen requerir coste elevado en espacio, lo que los hace impracticables para valores pequeños de $\varepsilon$
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{FPTAS $\implies$ Pseudopolinómico}
+		Se puede probar que si un problema de optimización admite un FPTAS, bajo condiciones muy generales,  admite un algoritmo pseudopolinómico. En concreto:
+		\begin{block}{Teorema}
+			Sea $P$ un problema de optimización tal que el valor de toda solución factible suya es entero positivo y el valor óptimo de la función objetivo está acotado superiormente por un polinomio en las variables Length($I$) y Max($I$). Si $P$ tiene un FPTAS, entonces tiene un algoritmo pseudo-polinómico que lo resuelve
+		\end{block}
+		 Ya hemos visto que el recíproco no es cierto (mochila con dos restricciones)\\
+		En consecuencia, salvo si P=NP, la gran mayoría de los problemas NP-difíciles fuertes no se pueden aproximar mediante FPTAS
+\end{frame}
+
+\begin{frame}
+	\frametitle{Conclusiones}
+	\begin{itemize}
+		\item Un algoritmo pseudo-polinómico puede resultar útil porque:
+		\begin{itemize}
+			\item Solo presenta comportamiento exponencial al tratar números muy grandes, no necesarios en muchas aplicaciones prácticas
+			\item Frecuentemente, existen métodos para transformarlo en un PTAS del mismo problema
+		\end{itemize}
+	    \item Determinar si un problema es NP-difícil fuerte es útil en la práctica porque, si la respuesta es afirmativa, se tendrá que el problema no puede tener ningún algoritmo pseudo-polinómico y, bajo condiciones muy generales, tampoco ningún FPTAS
+	 \end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Bibliografía}
+	\begin{itemize}
+		\item M. Garey y D.Johnson \textit{Computers and Intractability: A Guide to the theory of NP-completeness}
+		\item R. Neapolitan \textit{Foundations of Algorithms}\\
+		\alert{Capítulo 9}
+		\item  M. Garey y D.Johnson \textit{Strong NP-Completeness Results: Motivation, examples and implications}
+		\item P.Schuurman y G.Woeginger \textit{Aproximation Schemes - A tutorial}
+	\end{itemize}
+\end{frame}
+\end{document}
+
